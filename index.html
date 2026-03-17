@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de Metros Lineales</title>
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --card: rgba(255, 255, 255, 0.78);
+      --card-solid: #ffffff;
+      --text: #111111;
+      --muted: #6e6e73;
+      --line: rgba(17, 17, 17, 0.08);
+      --accent: #0071e3;
+      --accent-hover: #005ec0;
+      --danger: #d92d20;
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(0, 113, 227, 0.08), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 32px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 980px;
+      margin: 0 auto;
+      display: grid;
+      gap: 30px;
+    }
+
+    .panel {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      padding: 0;
+    }
+
+    .subpanel {
+      background: var(--card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.7);
+      border-radius: 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+      padding: 18px;
+    }
+
+    .subpanel-tight {
+      padding: 18px;
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 1.02rem;
+      letter-spacing: -0.02em;
+    }
+
+    .inputs {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: minmax(220px, 1.5fr) 64px 80px 80px 80px 44px;
+      align-items: end;
+    }
+
+    .add-action {
+      display: contents;
+    }
+
+    .add-action .btn-primary {
+      width: 100%;
+      min-height: 40px;
+      font-size: 1.15rem;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .add-action .btn-primary {
+      width: 100%;
+      min-height: 42px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    input,
+    select,
+    button {
+      width: 100%;
+      border: 0;
+      outline: none;
+      font: inherit;
+      border-radius: 12px;
+      min-height: 40px;
+    }
+
+    input,
+    select {
+      background: var(--card-solid);
+      border: 1px solid rgba(17, 17, 17, 0.06);
+      padding: 0 10px;
+      color: var(--text);
+      box-shadow: none;
+      font-size: 0.92rem;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: rgba(0, 113, 227, 0.45);
+      box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.12);
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 700;
+      transition: 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #e9f2ff;
+      color: var(--accent);
+    }
+
+    .btn-secondary:hover {
+      background: #dcecff;
+    }
+
+    .items {
+      margin-top: 18px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .items-summary {
+      margin-top: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .items-header {
+      display: grid;
+      grid-template-columns: minmax(180px, 1.4fr) 74px 150px 96px 92px 40px;
+      align-items: center;
+      gap: 8px;
+      padding: 0 10px 4px;
+      border-bottom: 0;
+    }
+
+    .items-header div {
+      font-size: 0.68rem;
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: 0;
+      text-align: center;
+      white-space: nowrap;
+      opacity: 0.8;
+    }
+
+    .items-header div:first-child {
+      text-align: left;
+    }
+
+    .empty {
+      padding: 18px;
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+      text-align: center;
+      color: var(--muted);
+      background: rgba(0, 0, 0, 0.015);
+      font-size: 0.92rem;
+    }
+
+    .item {
+      display: grid;
+      grid-template-columns: minmax(180px, 1.4fr) 64px 140px 80px 80px 34px;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 8px;
+      border: 1px solid rgba(17,17,17,0.05);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.62);
+      transition: 0.15s ease;
+    }
+
+    .item:hover {
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    .item-title {
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pill {
+      padding: 5px 7px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      font-size: 0.74rem;
+      color: #333;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+    }
+
+    .remove {
+      background: #fff1f1;
+      color: var(--danger);
+      min-height: 34px;
+      border-radius: 10px;
+      font-size: 1rem;
+      padding: 0;
+    }
+
+    .remove:hover {
+      background: #ffe4e4;
+    }
+
+    .summary {
+      display: grid;
+      gap: 18px;
+      align-content: start;
+      margin-top: 0;
+      padding-top: 0;
+    }
+
+    .summary-top {
+      display: grid;
+      gap: 10px;
+      padding: 0;
+      border: 0;
+    }
+
+    .roll-inline {
+      display: grid;
+      gap: 8px;
+    }
+
+    .roll-options {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .roll-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .roll-chip {
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.03);
+      color: var(--text);
+      font-size: 0.92rem;
+      font-weight: 700;
+      transition: 0.2s ease;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .roll-option input:checked + .roll-chip {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+      box-shadow: 0 8px 18px rgba(0, 113, 227, 0.18);
+    }
+
+    .roll-option input:focus-visible + .roll-chip {
+      box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.14);
+    }
+
+    .result-card,
+    .info-card {
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      padding: 0;
+    }
+
+    .roll-bar {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) 180px;
+      gap: 12px;
+      align-items: end;
+      margin-top: 0;
+      padding: 0;
+      border-top: 0;
+    }
+
+    .roll-bar h2 {
+      margin-bottom: 6px;
+    }
+
+    .layout-preview {
+      margin-top: 10px;
+      border: 1px dashed rgba(17,17,17,0.08);
+      border-radius: 14px;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    canvas {
+      width: 100%;
+      height: 140px;
+      display: block;
+    }
+
+    .actions-card {
+      display: grid;
+      gap: 6px;
+      align-content: end;
+    }
+
+    .btn-calculate {
+      background: var(--text);
+      color: white;
+    }
+
+    .btn-calculate:hover {
+      transform: translateY(-1px);
+      opacity: 0.94;
+    }
+
+    .result-main {
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      line-height: 0.95;
+      letter-spacing: -0.06em;
+      font-weight: 900;
+      margin: 6px 0 4px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .kpi {
+      display: grid;
+      gap: 10px;
+    }
+
+    .kpi-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.92rem;
+    }
+
+    .kpi-row:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .tag {
+      display: inline-flex;
+      padding: 8px 12px;
+      background: rgba(0, 113, 227, 0.08);
+      color: var(--accent);
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      width: fit-content;
+    }
+
+    .footer-note {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    @media (max-width: 980px) {
+      .roll-options {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .roll-bar {
+        grid-template-columns: 1fr;
+      }
+
+      .inputs {
+        grid-template-columns: minmax(180px, 1.4fr) 70px 1fr 1fr 86px 44px;
+      }
+
+      .items-header {
+        grid-template-columns: minmax(150px, 1.3fr) 68px 138px 88px 84px 36px;
+      }
+
+      .item {
+        grid-template-columns: minmax(150px, 1.3fr) 68px 138px 88px 84px 36px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .roll-options {
+        grid-template-columns: 1fr;
+      }
+
+      body {
+        padding: 24px 18px;
+      }
+
+      .hero {
+        padding: 2px 2px 0 10px;
+      }
+
+      .panel {
+        padding: 20px;
+        border-radius: 22px;
+      }
+
+      .items-header {
+        display: none;
+      }
+
+      .inputs,
+      .item {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <h1>Calculadora de metros lineales</h1>
+      <p>Calcula material de forma rápida, visual y clara.</p>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="stack" style="display:grid; gap:24px; padding-block:6px;">
+          <div class="subpanel">
+            <h2>Añadir vinilos</h2>
+
+            <div class="inputs">
+              <div class="field">
+                <label for="nombre">Nombre</label>
+                <input id="nombre" type="text" placeholder="Ej. Vinilo escaparate" />
+              </div>
+
+              <div class="field">
+                <label for="unidades">Uds</label>
+                <input id="unidades" type="number" min="1" value="1" />
+              </div>
+
+              <div class="field">
+                <label for="ancho">Ancho</label>
+                <input id="ancho" type="number" min="0.1" step="0.1" placeholder="500" />
+              </div>
+
+              <div class="field">
+                <label for="alto">Alto</label>
+                <input id="alto" type="number" min="0.1" step="0.1" placeholder="700" />
+              </div>
+
+              <div class="field">
+                <label for="unidad">Unidad</label>
+                <select id="unidad">
+                  <option value="mm" selected>mm</option>
+                  <option value="cm">cm</option>
+                  <option value="m">m</option>
+                </select>
+              </div>
+
+              <div class="add-action">
+                <button class="btn-primary" id="addItemBtn" aria-label="Añadir vinilo">+</button>
+              </div>
+            </div>
+
+            <div class="items-summary" id="itemsSummary">
+              <div class="items">
+                <div class="empty">Todavía no has añadido ningún vinilo.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="subpanel subpanel-tight">
+            <div class="summary-top">
+              <div class="roll-bar">
+                <div class="roll-inline">
+                  <h2>Bobina</h2>
+                  <div class="field">
+                    <label>Ancho</label>
+                    <div class="roll-options" id="rollOptions">
+                      <label class="roll-option">
+                        <input type="radio" name="rollWidth" value="1370" checked />
+                        <span class="roll-chip">1370</span>
+                      </label>
+                      <label class="roll-option">
+                        <input type="radio" name="rollWidth" value="1600" />
+                        <span class="roll-chip">1600</span>
+                      </label>
+                      <label class="roll-option">
+                        <input type="radio" name="rollWidth" value="3200" />
+                        <span class="roll-chip">3200</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="actions-card">
+                  <button class="btn-calculate" id="calculateBtn">Calcular</button>
+                  <div class="footer-note">Actualiza el resultado y la vista previa.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="summary">
+            <div class="subpanel subpanel-tight">
+              <div class="result-card">
+                <span class="tag">Resultado</span>
+                <div class="result-main" id="totalLinearMeters">0,00 m</div>
+                <p class="muted">Consumo estimado con el mejor aprovechamiento del ancho.</p>
+
+                <div class="info-card kpi" style="margin-top: 10px;">
+                  <div class="kpi-row">
+                    <span class="muted">Referencias</span>
+                    <strong id="totalRefs">0</strong>
+                  </div>
+                  <div class="kpi-row">
+                    <span class="muted">Unidades</span>
+                    <strong id="totalUnits">0</strong>
+                  </div>
+                  <div class="kpi-row">
+                    <span class="muted">Bobina</span>
+                    <strong id="selectedRoll">1370 mm</strong>
+                  </div>
+                </div>
+
+                <div class="layout-preview">
+                  <canvas id="layoutCanvas"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const items = [];
+
+    const nombreInput = document.getElementById('nombre');
+    const unidadesInput = document.getElementById('unidades');
+    const anchoInput = document.getElementById('ancho');
+    const altoInput = document.getElementById('alto');
+    const unidadInput = document.getElementById('unidad');
+    const addItemBtn = document.getElementById('addItemBtn');
+    const itemsSummary = document.getElementById('itemsSummary');
+    const rollWidthInputs = document.querySelectorAll('input[name="rollWidth"]');
+
+    const totalLinearMeters = document.getElementById('totalLinearMeters');
+    const totalRefs = document.getElementById('totalRefs');
+    const totalUnits = document.getElementById('totalUnits');
+    const selectedRoll = document.getElementById('selectedRoll');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const layoutCanvas = document.getElementById('layoutCanvas');
+    const ctx = layoutCanvas.getContext('2d');
+
+    let hasCalculated = false;
+
+    function toMm(value, unit) {
+      const num = Number(value);
+      if (unit === 'cm') return num * 10;
+      if (unit === 'm') return num * 1000;
+      return num;
+    }
+
+    function formatNumber(value, digits = 2) {
+      return new Intl.NumberFormat('es-ES', {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits
+      }).format(value);
+    }
+
+    function getSelectedRollWidth() {
+      const selected = document.querySelector('input[name="rollWidth"]:checked');
+      return selected ? Number(selected.value) : 1370;
+    }
+
+    function calculateItemLinearMeters(item, rollWidthMm) {
+      const orientations = [
+        { width: item.widthMm, height: item.heightMm },
+        { width: item.heightMm, height: item.widthMm }
+      ];
+
+      let best = null;
+
+      orientations.forEach(option => {
+        const across = Math.max(1, Math.floor(rollWidthMm / option.width));
+        const rows = Math.ceil(item.units / across);
+        const linearMm = rows * option.height;
+
+        if (!best || linearMm < best.linearMm) {
+          best = {
+            across,
+            rows,
+            linearMm,
+            pieceWidth: option.width,
+            pieceHeight: option.height
+          };
+        }
+      });
+
+      return best;
+    }
+
+    function renderItems() {
+      if (!items.length) {
+        itemsSummary.innerHTML = '<div class="items"><div class="empty">Todavía no has añadido ningún vinilo.</div></div>';
+        return;
+      }
+
+      const rollWidthMm = getSelectedRollWidth();
+
+      const rowsHtml = items.map((item, index) => {
+        const calc = calculateItemLinearMeters(item, rollWidthMm);
+        const resultPill = hasCalculated
+          ? `<div class="pill">${calc.across}/fila</div><div class="pill">${formatNumber(calc.linearMm / 1000)} m</div>`
+          : `<div class="pill">Pend.</div><div class="pill">—</div>`;
+
+        return `
+          <div class="item">
+            <div class="item-title">${item.name}</div>
+            <div class="pill">${item.units} uds</div>
+            <div class="pill">${formatNumber(item.widthMm, 0)} × ${formatNumber(item.heightMm, 0)} mm</div>
+            ${resultPill}
+            <button class="remove" onclick="removeItem(${index})">×</button>
+          </div>
+        `;
+      }).join('');
+
+      itemsSummary.innerHTML = `
+        <div class="items-header">
+          <div>Nombre</div>
+          <div>Uds</div>
+          <div>Medida</div>
+          <div>x/fila</div>
+          <div>m</div>
+          <div>Borrar</div>
+        </div>
+        <div class="items">${rowsHtml}</div>
+      `;
+    }
+
+    function updateSummary() {
+      const rollWidthMm = getSelectedRollWidth();
+      selectedRoll.textContent = `${formatNumber(rollWidthMm, 0)} mm`;
+
+      if (!hasCalculated) {
+        totalLinearMeters.textContent = '—';
+        totalRefs.textContent = items.length;
+        totalUnits.textContent = items.reduce((sum, item) => sum + item.units, 0);
+        return;
+      }
+
+      let totalMeters = 0;
+      let units = 0;
+
+      items.forEach(item => {
+        const calc = calculateItemLinearMeters(item, rollWidthMm);
+        totalMeters += calc.linearMm / 1000;
+        units += item.units;
+      });
+
+      totalLinearMeters.textContent = `${formatNumber(totalMeters)} m`;
+      totalRefs.textContent = items.length;
+      totalUnits.textContent = units;
+    }
+
+    function addItem() {
+      const name = nombreInput.value.trim() || `Vinilo ${items.length + 1}`;
+      const units = Number(unidadesInput.value);
+      const width = Number(anchoInput.value);
+      const height = Number(altoInput.value);
+      const unit = unidadInput.value;
+
+      if (!units || units < 1 || !width || width <= 0 || !height || height <= 0) {
+        alert('Introduce unidades, ancho y alto válidos.');
+        return;
+      }
+
+      items.push({
+        name,
+        units,
+        widthMm: toMm(width, unit),
+        heightMm: toMm(height, unit)
+      });
+
+      hasCalculated = false;
+
+      nombreInput.value = '';
+      unidadesInput.value = '1';
+      anchoInput.value = '';
+      altoInput.value = '';
+      unidadInput.value = 'mm';
+
+      renderItems();
+      updateSummary();
+      anchoInput.focus();
+    }
+
+    function removeItem(index) {
+      items.splice(index, 1);
+      hasCalculated = false;
+      renderItems();
+      updateSummary();
+    }
+
+    window.removeItem = removeItem;
+
+    function drawLayout() {
+      const rollWidth = getSelectedRollWidth();
+      const dpr = window.devicePixelRatio || 1;
+      const width = layoutCanvas.clientWidth || layoutCanvas.parentElement.clientWidth - 20;
+      const height = 140;
+
+      layoutCanvas.width = Math.max(1, Math.floor(width * dpr));
+      layoutCanvas.height = Math.max(1, Math.floor(height * dpr));
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.fillStyle = '#eef3f8';
+      ctx.fillRect(0, 0, width, height);
+
+      if (!items.length || !hasCalculated) {
+        ctx.fillStyle = '#6e6e73';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('La vista previa aparecerá al calcular.', 12, 20);
+        return;
+      }
+
+      const item = items[0];
+      const calc = calculateItemLinearMeters(item, rollWidth);
+      const padding = 10;
+      const availableWidth = width - padding * 2;
+      const pieceW = calc.pieceWidth * (availableWidth / rollWidth);
+      const pieceH = calc.pieceHeight * (availableWidth / rollWidth);
+      const maxHeight = 80;
+      const finalH = Math.max(18, Math.min(pieceH, maxHeight));
+      const startY = (height - finalH) / 2;
+
+      ctx.strokeStyle = '#0071e3';
+      ctx.lineWidth = 1;
+
+      for (let i = 0; i < calc.across; i++) {
+        const x = padding + i * pieceW;
+        if (x + pieceW > width - padding + 0.5) break;
+        ctx.strokeRect(x, startY, Math.max(8, pieceW - 2), Math.max(12, finalH - 2));
+      }
+
+      ctx.fillStyle = '#0071e3';
+      ctx.font = '12px sans-serif';
+      ctx.fillText(`${calc.across} por fila`, padding, 16);
+    }
+
+    function calculateAll() {
+      hasCalculated = true;
+      renderItems();
+      updateSummary();
+      drawLayout();
+    }
+
+    addItemBtn.addEventListener('click', addItem);
+    calculateBtn.addEventListener('click', calculateAll);
+    rollWidthInputs.forEach(input => {
+      input.addEventListener('change', () => {
+        hasCalculated = false;
+        renderItems();
+        updateSummary();
+        drawLayout();
+      });
+    });
+
+    [nombreInput, unidadesInput, anchoInput, altoInput].forEach(input => {
+      input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          addItem();
+        }
+      });
+    });
+
+    renderItems();
+    updateSummary();
+    drawLayout();
+  </script>
+</body>
+</html>
