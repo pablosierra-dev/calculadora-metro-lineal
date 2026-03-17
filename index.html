@@ -328,9 +328,9 @@
 
     .roll-bar {
       display: grid;
-      grid-template-columns: minmax(180px, 1fr) 180px;
-      gap: 12px;
-      align-items: end;
+      grid-template-columns: minmax(0, 1fr) 220px;
+      gap: 16px;
+      align-items: start;
       margin-top: 0;
       padding: 0;
       border-top: 0;
@@ -350,19 +350,25 @@
 
     canvas {
       width: 100%;
-      height: 140px;
+      height: 220px;
       display: block;
     }
 
     .actions-card {
       display: grid;
-      gap: 6px;
-      align-content: end;
+      gap: 8px;
+      align-content: start;
+      justify-self: end;
+      width: 100%;
+      max-width: 220px;
     }
 
     .btn-calculate {
       background: var(--text);
       color: white;
+      min-height: 44px;
+      width: 100%;
+      display: block;
     }
 
     .btn-calculate:hover {
@@ -425,6 +431,11 @@
 
       .roll-bar {
         grid-template-columns: 1fr;
+      }
+
+      .actions-card {
+        justify-self: stretch;
+        max-width: none;
       }
 
       .inputs {
@@ -764,8 +775,8 @@
     function drawLayout() {
       const rollWidth = getSelectedRollWidth();
       const dpr = window.devicePixelRatio || 1;
-      const width = layoutCanvas.clientWidth || layoutCanvas.parentElement.clientWidth - 20;
-      const height = 140;
+      const width = layoutCanvas.clientWidth || Math.max(320, layoutCanvas.parentElement.clientWidth - 16);
+      const height = 220;
 
       layoutCanvas.width = Math.max(1, Math.floor(width * dpr));
       layoutCanvas.height = Math.max(1, Math.floor(height * dpr));
@@ -774,7 +785,7 @@
       ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, width, height);
 
-      ctx.fillStyle = '#eef3f8';
+      ctx.fillStyle = '#f6f9fc';
       ctx.fillRect(0, 0, width, height);
 
       if (!items.length || !hasCalculated) {
@@ -784,28 +795,69 @@
         return;
       }
 
-      const item = items[0];
-      const calc = calculateItemLinearMeters(item, rollWidth);
-      const padding = 10;
-      const availableWidth = width - padding * 2;
-      const pieceW = calc.pieceWidth * (availableWidth / rollWidth);
-      const pieceH = calc.pieceHeight * (availableWidth / rollWidth);
-      const maxHeight = 80;
-      const finalH = Math.max(18, Math.min(pieceH, maxHeight));
-      const startY = (height - finalH) / 2;
+      const paddingX = 10;
+      const topPad = 12;
+      const bottomPad = 12;
+      const labelGap = 16;
+      const sectionGap = 8;
+      const innerWidth = width - paddingX * 2;
 
-      ctx.strokeStyle = '#0071e3';
-      ctx.lineWidth = 1;
+      const calculations = items.map(item => ({
+        item,
+        calc: calculateItemLinearMeters(item, rollWidth)
+      }));
 
-      for (let i = 0; i < calc.across; i++) {
-        const x = padding + i * pieceW;
-        if (x + pieceW > width - padding + 0.5) break;
-        ctx.strokeRect(x, startY, Math.max(8, pieceW - 2), Math.max(12, finalH - 2));
-      }
+      const totalLinearMm = calculations.reduce((sum, entry) => sum + entry.calc.linearMm, 0) || 1;
+      const availableHeight = height - topPad - bottomPad - (sectionGap * (calculations.length - 1));
 
-      ctx.fillStyle = '#0071e3';
-      ctx.font = '12px sans-serif';
-      ctx.fillText(`${calc.across} por fila`, padding, 16);
+      let currentY = topPad;
+
+      calculations.forEach((entry, index) => {
+        const { item, calc } = entry;
+        const proportionalHeight = Math.round((calc.linearMm / totalLinearMm) * availableHeight);
+        const remainingItems = calculations.length - index - 1;
+        const remainingMinHeight = remainingItems * 28;
+        const bandHeight = Math.max(28, Math.min(availableHeight - (currentY - topPad) - remainingMinHeight, proportionalHeight || 28));
+
+        const bandY = currentY;
+        const bandInnerY = bandY + labelGap;
+        const bandInnerHeight = Math.max(10, bandHeight - labelGap);
+
+        ctx.fillStyle = 'rgba(0, 113, 227, 0.05)';
+        ctx.fillRect(paddingX, bandY, innerWidth, bandHeight);
+
+        ctx.fillStyle = '#111111';
+        ctx.font = '11px sans-serif';
+        const lineMeters = formatNumber(calc.linearMm / 1000);
+        const label = `${item.name} · ${calc.across}/fila · ${lineMeters} m`;
+        ctx.fillText(label.slice(0, 52), paddingX + 6, bandY + 11);
+
+        const pieceW = innerWidth / calc.across;
+        const pieceH = bandInnerHeight;
+
+        ctx.strokeStyle = 'rgba(0, 113, 227, 0.55)';
+        ctx.lineWidth = 1;
+        ctx.fillStyle = 'rgba(0, 113, 227, 0.10)';
+
+        for (let i = 0; i < calc.across; i++) {
+          const x = paddingX + i * pieceW;
+          const drawW = Math.max(8, pieceW - 2);
+          const drawH = Math.max(8, pieceH - 2);
+          ctx.fillRect(x + 1, bandInnerY + 1, drawW - 1, drawH - 1);
+          ctx.strokeRect(x + 1, bandInnerY + 1, drawW, drawH);
+        }
+
+        if (calc.rows > 1) {
+          ctx.fillStyle = 'rgba(17, 17, 17, 0.55)';
+          ctx.font = '10px sans-serif';
+          ctx.fillText(`${calc.rows} filas`, paddingX + innerWidth - 40, bandY + 11);
+        }
+
+        currentY += bandHeight + sectionGap;
+      });
+
+      ctx.strokeStyle = 'rgba(0, 113, 227, 0.10)';
+      ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
     }
 
     function calculateAll() {
