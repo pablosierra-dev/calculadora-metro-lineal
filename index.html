@@ -540,16 +540,16 @@
                     <label>Ancho</label>
                     <div class="roll-options" id="rollOptions">
                       <label class="roll-option">
-                        <input type="radio" name="rollWidth" value="1370" checked />
+                        <input type="radio" name="rollWidth" value="1050" checked />
+                        <span class="roll-chip">1050</span>
+                      </label>
+                      <label class="roll-option">
+                        <input type="radio" name="rollWidth" value="1370" />
                         <span class="roll-chip">1370</span>
                       </label>
                       <label class="roll-option">
                         <input type="radio" name="rollWidth" value="1600" />
                         <span class="roll-chip">1600</span>
-                      </label>
-                      <label class="roll-option">
-                        <input type="radio" name="rollWidth" value="3200" />
-                        <span class="roll-chip">3200</span>
                       </label>
                     </div>
                   </div>
@@ -585,7 +585,7 @@
                   </div>
                   <div class="kpi-row">
                     <span class="muted">Bobina</span>
-                    <strong id="selectedRoll">1370 mm</strong>
+                    <strong id="selectedRoll">1050 mm</strong>
                   </div>
                 </div>
 
@@ -649,7 +649,7 @@
 
     function getSelectedRollWidth() {
       const selected = document.querySelector('input[name="rollWidth"]:checked');
-      return selected ? Number(selected.value) : 1370;
+      return selected ? Number(selected.value) : 1050;
     }
 
     function getItemColor(index) {
